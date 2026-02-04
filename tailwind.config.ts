@@ -57,6 +57,12 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        chart: {
+          organic: "hsl(var(--chart-organic))",
+          boost: "hsl(var(--chart-boost))",
+          ads: "hsl(var(--chart-ads))",
+          total: "hsl(var(--chart-total))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
