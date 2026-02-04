@@ -8,6 +8,7 @@ import { runSimulation } from "@/lib/simulation";
 import {
   getDefaultAdsCeiling,
   getDefaultBoostMultiplier,
+  getDefaultTotalAdsQty,
   type CompanyData,
   type SimulationConfig,
   type SimulationResult,
@@ -19,7 +20,7 @@ const Index = () => {
   const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(null);
   const [config, setConfig] = useState<SimulationConfig>({
     boostMultiplier: 2.0,
-    monthlyAds: 100000,
+    totalAdsQty: 600000,
     adsCeiling: 1200000,
     k: 10000,
   });
@@ -28,7 +29,7 @@ const Index = () => {
   const getDefaultConfig = useCallback((company: CompanyData): SimulationConfig => {
     return {
       boostMultiplier: getDefaultBoostMultiplier(company.monthly_impressions),
-      monthlyAds: 100000,
+      totalAdsQty: getDefaultTotalAdsQty(company.p100),
       adsCeiling: getDefaultAdsCeiling(company.p100),
       k: company.p100,
     };

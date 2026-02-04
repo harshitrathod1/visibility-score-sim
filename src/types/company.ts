@@ -9,7 +9,7 @@ export interface CompanyData {
 
 export interface SimulationConfig {
   boostMultiplier: number;
-  monthlyAds: number;
+  totalAdsQty: number;
   adsCeiling: number;
   k: number;
 }
@@ -40,4 +40,11 @@ export function getDefaultBoostMultiplier(monthlyImpressions: number): number {
   if (monthlyImpressions < 10000) return 3.0;
   if (monthlyImpressions <= 50000) return 2.0;
   return 1.2;
+}
+
+export function getDefaultTotalAdsQty(p100: number): number {
+  // Random total ads quantity based on tier
+  if (p100 < 10000) return Math.floor(300000 + Math.random() * 300000); // 300K - 600K
+  if (p100 <= 50000) return Math.floor(600000 + Math.random() * 600000); // 600K - 1.2M
+  return Math.floor(1000000 + Math.random() * 1000000); // 1M - 2M
 }
