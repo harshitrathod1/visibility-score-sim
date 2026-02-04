@@ -76,20 +76,23 @@ export function SimulationChart({ data }: SimulationChartProps) {
               <Bar
                 dataKey="organic"
                 name="Organic"
+                stackId="scores"
                 fill="hsl(var(--chart-organic))"
-                radius={[4, 4, 0, 0]}
+                radius={[0, 0, 0, 0]}
                 maxBarSize={40}
               />
               <Bar
                 dataKey="boost"
                 name="Boost"
+                stackId="scores"
                 fill="hsl(var(--chart-boost))"
-                radius={[4, 4, 0, 0]}
+                radius={[0, 0, 0, 0]}
                 maxBarSize={40}
               />
               <Bar
                 dataKey="ads"
                 name="Ads"
+                stackId="scores"
                 fill="hsl(var(--chart-ads))"
                 radius={[4, 4, 0, 0]}
                 maxBarSize={40}

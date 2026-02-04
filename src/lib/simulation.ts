@@ -1,11 +1,21 @@
 import type { CompanyData, SimulationConfig, MonthlyResult, SimulationResult } from "@/types/company";
 
+// Distribute total ads quantity randomly across 6 months (7-12)
+function distributeAdsRandomly(totalAdsQty: number): number[] {
+  const weights = Array.from({ length: 6 }, () => Math.random());
+  const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+  return weights.map(w => Math.floor((w / totalWeight) * totalAdsQty));
+}
+
 export function runSimulation(
   company: CompanyData,
   config: SimulationConfig
 ): SimulationResult {
-  const { boostMultiplier, monthlyAds, adsCeiling, k } = config;
+  const { boostMultiplier, totalAdsQty, adsCeiling, k } = config;
   const monthlyResults: MonthlyResult[] = [];
+
+  // Pre-compute ads distribution for months 7-12
+  const adsDistribution = distributeAdsRandomly(totalAdsQty);
 
   let prevOrganicImpressions = company.monthly_impressions;
 
@@ -18,8 +28,12 @@ export function runSimulation(
 
     // Free tier rule: months 1-6 have no boost or ads
     const isFreePhase = month <= 6;
-    const boostImpressions = isFreePhase ? 0 : boostMultiplier * organicImpressions;
-    const adsImpressions = isFreePhase ? 0 : monthlyAds;
+    
+    // CHANGE 1: Boost impressions = (multiplier - 1) * organic (incremental only)
+    const boostImpressions = isFreePhase ? 0 : (boostMultiplier - 1) * organicImpressions;
+    
+    // CHANGE 3: Ads from pre-distributed allocation
+    const adsImpressions = isFreePhase ? 0 : adsDistribution[month - 7];
 
     // Calculate scores
     const organicScore = calculateOrganicScore(organicImpressions, k);

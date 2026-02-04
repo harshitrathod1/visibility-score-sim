@@ -95,34 +95,37 @@ export function ControlPanel({
           </div>
         </div>
 
-        {/* Monthly Ads */}
+        {/* Total Ads Quantity */}
         <div className="space-y-3">
           <div className="flex justify-between">
-            <Label className="text-sm font-medium">Monthly Ads</Label>
+            <Label className="text-sm font-medium">Total Ads Quantity (6 months)</Label>
             <span className="text-sm text-muted-foreground">
-              {formatNumber(config.monthlyAds)}
+              {formatNumber(config.totalAdsQty)}
             </span>
           </div>
           <Slider
-            value={[config.monthlyAds]}
+            value={[config.totalAdsQty]}
             onValueChange={([value]) =>
-              onConfigChange({ ...config, monthlyAds: value })
+              onConfigChange({ ...config, totalAdsQty: value })
             }
-            max={config.adsCeiling}
-            step={10000}
+            max={config.adsCeiling * 2}
+            step={50000}
             className="py-2"
           />
           <Input
             type="number"
-            value={config.monthlyAds}
+            value={config.totalAdsQty}
             onChange={(e) =>
               onConfigChange({
                 ...config,
-                monthlyAds: parseInt(e.target.value) || 0,
+                totalAdsQty: parseInt(e.target.value) || 0,
               })
             }
             className="bg-background"
           />
+          <p className="text-xs text-muted-foreground">
+            Distributed randomly across months 7-12
+          </p>
         </div>
 
         {/* Ads Ceiling */}
