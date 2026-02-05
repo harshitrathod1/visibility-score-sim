@@ -39,27 +39,36 @@ export function SimulationTable({ data }: SimulationTableProps) {
                 <TableHead className="font-semibold">Month</TableHead>
                 <TableHead className="font-semibold text-right">
                   <span className="inline-flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-chart-organic" />
-                    Organic
+                    <span className="w-2 h-2 rounded-full bg-chart-total" />
+                    Total Score
                   </span>
+                </TableHead>
+                <TableHead className="font-semibold text-right">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-chart-organic" />
+                    Organic Score
+                  </span>
+                </TableHead>
+                <TableHead className="font-semibold text-right">
+                  Organic Impressions
                 </TableHead>
                 <TableHead className="font-semibold text-right">
                   <span className="inline-flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-chart-boost" />
-                    Boost
+                    Boost Score
                   </span>
+                </TableHead>
+                <TableHead className="font-semibold text-right">
+                  Boost Impressions
                 </TableHead>
                 <TableHead className="font-semibold text-right">
                   <span className="inline-flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-chart-ads" />
-                    Ads
+                    Ads Score
                   </span>
                 </TableHead>
                 <TableHead className="font-semibold text-right">
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-chart-total" />
-                    Total
-                  </span>
+                  Ads Qty
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -80,17 +89,26 @@ export function SimulationTable({ data }: SimulationTableProps) {
                       </span>
                     )}
                   </TableCell>
+                  <TableCell className={cn("text-right font-semibold", getScoreColor(row.totalScore))}>
+                    {row.totalScore.toFixed(1)}
+                  </TableCell>
                   <TableCell className={cn("text-right", getScoreColor(row.organicScore))}>
                     {row.organicScore.toFixed(1)}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {row.organicImpressions.toLocaleString()}
                   </TableCell>
                   <TableCell className={cn("text-right", getScoreColor(row.boostScore))}>
                     {row.boostScore.toFixed(1)}
                   </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {row.boostImpressions.toLocaleString()}
+                  </TableCell>
                   <TableCell className={cn("text-right", getScoreColor(row.adsScore))}>
                     {row.adsScore.toFixed(1)}
                   </TableCell>
-                  <TableCell className={cn("text-right font-semibold", getScoreColor(row.totalScore))}>
-                    {row.totalScore.toFixed(1)}
+                  <TableCell className="text-right tabular-nums">
+                    {row.adsImpressions.toLocaleString()}
                   </TableCell>
                 </TableRow>
               ))}

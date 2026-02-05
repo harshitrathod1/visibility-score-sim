@@ -109,7 +109,7 @@ export function ControlPanel({
               onConfigChange({ ...config, totalAdsQty: value })
             }
             max={config.adsCeiling * 2}
-            step={50000}
+            step={10000}
             className="py-2"
           />
           <Input

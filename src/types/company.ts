@@ -42,9 +42,17 @@ export function getDefaultBoostMultiplier(monthlyImpressions: number): number {
   return 1.2;
 }
 
+// 10-divisible values for Total Ads Quantity (6 months) per tier - e.g. 200, 2000, 200000
+const ADS_QTY_OPTIONS_TIER1 = [200_000, 300_000, 400_000, 500_000, 600_000]; // p100 < 10k, k_a = 6L
+const ADS_QTY_OPTIONS_TIER2 = [400_000, 600_000, 800_000, 1_000_000, 1_200_000]; // 10k–50k, k_a = 12L
+const ADS_QTY_OPTIONS_TIER3 = [1_000_000, 1_200_000, 1_600_000, 2_000_000]; // >50k, k_a = 20L
+
 export function getDefaultTotalAdsQty(p100: number): number {
-  // Random total ads quantity based on tier
-  if (p100 < 10000) return Math.floor(300000 + Math.random() * 300000); // 300K - 600K
-  if (p100 <= 50000) return Math.floor(600000 + Math.random() * 600000); // 600K - 1.2M
-  return Math.floor(1000000 + Math.random() * 1000000); // 1M - 2M
+  const options =
+    p100 < 10000
+      ? ADS_QTY_OPTIONS_TIER1
+      : p100 <= 50000
+        ? ADS_QTY_OPTIONS_TIER2
+        : ADS_QTY_OPTIONS_TIER3;
+  return options[Math.floor(Math.random() * options.length)];
 }
