@@ -21,22 +21,22 @@ export function TrendTable({ monthlyResults }: TrendTableProps) {
   const rows = [
     {
       label: "Organic",
-      values: monthlyResults.map((r) => r.organicImpressions),
+      values: monthlyResults.map((r) => r.organicScore.toFixed(1)),
       className: "text-[hsl(var(--chart-organic))]",
     },
     {
       label: "Boosted",
-      values: monthlyResults.map((r) => r.boostImpressions),
+      values: monthlyResults.map((r) => r.boostScore.toFixed(1)),
       className: "text-[hsl(var(--chart-boost))]",
     },
     {
       label: "Ads",
-      values: monthlyResults.map((r) => r.adsImpressions),
+      values: monthlyResults.map((r) => r.adsScore.toFixed(1)),
       className: "text-[hsl(var(--chart-ads))]",
     },
     {
       label: "Total Score",
-      values: monthlyResults.map((r) => r.totalScore),
+      values: monthlyResults.map((r) => r.totalScore.toFixed(1)),
       className: "font-semibold",
     },
   ];
@@ -52,7 +52,7 @@ export function TrendTable({ monthlyResults }: TrendTableProps) {
   const getTotalScoreCellClass = (monthIndex: number) => {
     const isFreeTier = monthIndex < 6;
     const base = "text-center text-sm font-semibold";
-    if (isFreeTier) return `${base} text-[hsl(var(--chart-organic))]`;
+    if (isFreeTier) return `${base} text-[hsl(var(--chart-total))]`;
     return `${base} text-[hsl(var(--chart-total))]`;
   };
 
