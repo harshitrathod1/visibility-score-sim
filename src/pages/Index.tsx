@@ -1,9 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
-import { FileUpload } from "@/components/FileUpload";
-import { CompanyList } from "@/components/CompanyList";
-import { ControlPanel } from "@/components/ControlPanel";
-import { SimulationChart } from "@/components/SimulationChart";
-import { SimulationTable } from "@/components/SimulationTable";
+ import { FileUpload } from "@/components/FileUpload";
+ import { CompanyList } from "@/components/CompanyList";
+ import { SimulationChart } from "@/components/SimulationChart";
+ import { ScoreCards } from "@/components/ScoreCards";
+ import { MonthlyAveragesCard } from "@/components/MonthlyAveragesCard";
+ import { TrendTable } from "@/components/TrendTable";
+ import { AdvancedSettings } from "@/components/AdvancedSettings";
 import { runSimulation } from "@/lib/simulation";
 import {
   getDefaultAdsCeiling,
@@ -170,23 +172,25 @@ const Index = () => {
                     </div>
                   </div>
 
-                  {/* Controls and Chart */}
-                  <div className="grid grid-cols-12 gap-6">
-                    <div className="col-span-12 xl:col-span-4">
-                      <ControlPanel
-                        config={config}
-                        onConfigChange={setConfig}
-                        onReset={handleReset}
-                        onRecalculate={handleRecalculate}
-                      />
-                    </div>
-                    <div className="col-span-12 xl:col-span-8">
-                      {result && <SimulationChart data={result.monthlyResults} />}
-                    </div>
-                  </div>
+                   {/* Score Cards */}
+                   {result && <ScoreCards monthlyResults={result.monthlyResults} />}
 
-                  {/* Results Table */}
-                  {result && <SimulationTable data={result.monthlyResults} />}
+                   {/* Monthly Averages */}
+                   {result && <MonthlyAveragesCard monthlyResults={result.monthlyResults} />}
+
+                   {/* Chart */}
+                   {result && <SimulationChart data={result.monthlyResults} />}
+
+                   {/* Trend Table */}
+                   {result && <TrendTable monthlyResults={result.monthlyResults} />}
+
+                   {/* Advanced Settings */}
+                   <AdvancedSettings
+                     config={config}
+                     onConfigChange={setConfig}
+                     onReset={handleReset}
+                     onRecalculate={handleRecalculate}
+                   />
                 </>
               )}
             </div>
