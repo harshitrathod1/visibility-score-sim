@@ -21,17 +21,17 @@ export function TrendTable({ monthlyResults }: TrendTableProps) {
   const rows = [
     {
       label: "Organic",
-      values: monthlyResults.map((r) => r.organicScore.toFixed(1)),
+      values: monthlyResults.map((r) => r.organicScore),
       className: "text-[hsl(var(--chart-organic))]",
     },
     {
       label: "Boosted",
-      values: monthlyResults.map((r) => r.boostScore.toFixed(1)),
+      values: monthlyResults.map((r) => r.boostScore),
       className: "text-[hsl(var(--chart-boost))]",
     },
     {
       label: "Ads",
-      values: monthlyResults.map((r) => r.adsScore.toFixed(1)),
+      values: monthlyResults.map((r) => r.adsScore),
       className: "text-[hsl(var(--chart-ads))]",
     },
     {
