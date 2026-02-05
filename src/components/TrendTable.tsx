@@ -36,7 +36,7 @@ export function TrendTable({ monthlyResults }: TrendTableProps) {
     },
     {
       label: "Total Score",
-      values: monthlyResults.map((r) => r.totalScore.toFixed(1)),
+      values: monthlyResults.map((r) => r.totalScore),
       className: "font-semibold",
     },
   ];
