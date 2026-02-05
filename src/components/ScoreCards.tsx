@@ -13,8 +13,10 @@
      monthlyResults.slice(6).reduce((sum, r) => sum + r.totalScore, 0) / 6;
    const hasImprovement = avgAfter > avgBefore;
  
-   return (
-     <div className="grid grid-cols-2 gap-4">
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-medium text-muted-foreground">Visibility Score</h3>
+      <div className="grid grid-cols-2 gap-4">
        <Card className="bg-card border-border">
          <CardContent className="p-6">
            <p className="text-sm text-muted-foreground mb-1">
@@ -47,7 +49,8 @@
              )}
            </div>
          </CardContent>
-       </Card>
-     </div>
-   );
- }
+      </Card>
+      </div>
+    </div>
+  );
+}
