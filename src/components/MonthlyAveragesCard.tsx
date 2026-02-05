@@ -46,8 +46,10 @@
      },
    ];
  
-   return (
-     <div className="grid grid-cols-3 gap-4">
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-medium text-muted-foreground">Impressions</h3>
+      <div className="grid grid-cols-3 gap-4">
        {metrics.map((metric) => (
          <Card
            key={metric.label}
@@ -65,7 +67,8 @@
              </div>
            </CardContent>
          </Card>
-       ))}
-     </div>
-   );
- }
+        ))}
+      </div>
+    </div>
+  );
+}
