@@ -1,11 +1,12 @@
 import { useState, useCallback, useEffect } from "react";
- import { FileUpload } from "@/components/FileUpload";
- import { CompanyList } from "@/components/CompanyList";
- import { SimulationChart } from "@/components/SimulationChart";
- import { ScoreCards } from "@/components/ScoreCards";
- import { MonthlyAveragesCard } from "@/components/MonthlyAveragesCard";
- import { TrendTable } from "@/components/TrendTable";
- import { AdvancedSettings } from "@/components/AdvancedSettings";
+import * as XLSX from "xlsx";
+import { FileUpload } from "@/components/FileUpload";
+import { CompanyList } from "@/components/CompanyList";
+import { SimulationChart } from "@/components/SimulationChart";
+import { ScoreCards } from "@/components/ScoreCards";
+import { MonthlyAveragesCard } from "@/components/MonthlyAveragesCard";
+import { TrendTable } from "@/components/TrendTable";
+import { AdvancedSettings } from "@/components/AdvancedSettings";
 import { runSimulation } from "@/lib/simulation";
 import {
   getDefaultAdsCeiling,
@@ -16,6 +17,23 @@ import {
   type SimulationResult,
 } from "@/types/company";
 import { Activity, TrendingUp } from "lucide-react";
+
+const DEFAULT_CSV_PATH = "/default-companies.csv";
+
+function parseCsvToCompanies(csvText: string): CompanyData[] {
+  const workbook = XLSX.read(csvText, { type: "string" });
+  const sheetName = workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[sheetName];
+  const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet);
+  return jsonData.map((row) => ({
+    companyId: String(row.companyId ?? row.company_id ?? ""),
+    companyName: String(row.companyName ?? row.company_name ?? ""),
+    monthly_impressions: Number(row.monthly_impressions) || 0,
+    p90: Number(row.p90) || 0,
+    p99: Number(row.p99) || 0,
+    p100: Number(row.p100) || 0,
+  }));
+}
 
 const Index = () => {
   const [companies, setCompanies] = useState<CompanyData[]>([]);
@@ -73,6 +91,17 @@ const Index = () => {
       setResult(runSimulation(selectedCompany, config));
     }
   }, [config, selectedCompany]);
+
+  // Load default CSV on first visit so UI loads with predefined data; user can upload a different file via FileUpload
+  useEffect(() => {
+    fetch(DEFAULT_CSV_PATH)
+      .then((res) => (res.ok ? res.text() : Promise.reject(new Error("Default data not found"))))
+      .then((csvText) => {
+        const data = parseCsvToCompanies(csvText);
+        if (data.length > 0) setCompanies(data);
+      })
+      .catch(() => { /* no-op: user can upload their own file */ });
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -142,32 +171,12 @@ const Index = () => {
                 </div>
               ) : (
                 <>
-                  {/* Selected Company Info */}
+                  {/* Selected Company Info - Company Name and ID only */}
                   <div className="bg-card border border-border rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <h2 className="text-xl font-bold">{selectedCompany.companyName}</h2>
                         <p className="text-sm text-muted-foreground">ID: {selectedCompany.companyId}</p>
-                      </div>
-                      <div className="flex gap-6 text-sm">
-                        <div className="text-center">
-                          <p className="text-muted-foreground">Monthly Impressions</p>
-                          <p className="font-semibold text-lg">
-                            {selectedCompany.monthly_impressions.toLocaleString()}
-                          </p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-muted-foreground">p90</p>
-                          <p className="font-semibold text-lg">{selectedCompany.p90.toLocaleString()}</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-muted-foreground">p99</p>
-                          <p className="font-semibold text-lg">{selectedCompany.p99.toLocaleString()}</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-muted-foreground">p100</p>
-                          <p className="font-semibold text-lg">{selectedCompany.p100.toLocaleString()}</p>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -184,12 +193,13 @@ const Index = () => {
                    {/* Trend Table */}
                    {result && <TrendTable monthlyResults={result.monthlyResults} />}
 
-                   {/* Advanced Settings */}
+                   {/* Advanced Settings (includes p90, p99, p100 view) */}
                    <AdvancedSettings
                      config={config}
                      onConfigChange={setConfig}
                      onReset={handleReset}
                      onRecalculate={handleRecalculate}
+                     selectedCompany={selectedCompany}
                    />
                 </>
               )}
