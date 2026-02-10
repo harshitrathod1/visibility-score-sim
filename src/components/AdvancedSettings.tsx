@@ -9,6 +9,9 @@ interface AdvancedSettingsProps {
   onConfigChange: (config: SimulationConfig) => void;
   onReset: () => void;
   onRecalculate: () => void;
+  onRegenerateCohort?: () => void;
+  benchmarkLoading?: boolean;
+  benchmarkStale?: boolean;
   selectedCompany: CompanyData | null;
 }
 
@@ -17,6 +20,9 @@ export function AdvancedSettings({
   onConfigChange,
   onReset,
   onRecalculate,
+  onRegenerateCohort,
+  benchmarkLoading,
+  benchmarkStale,
   selectedCompany,
 }: AdvancedSettingsProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -65,6 +71,9 @@ export function AdvancedSettings({
           onConfigChange={onConfigChange}
           onReset={onReset}
           onRecalculate={onRecalculate}
+          onRegenerateCohort={onRegenerateCohort}
+          benchmarkLoading={benchmarkLoading}
+          benchmarkStale={benchmarkStale}
         />
       </CollapsibleContent>
     </Collapsible>

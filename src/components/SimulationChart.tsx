@@ -12,19 +12,25 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3 } from "lucide-react";
 import type { MonthlyResult } from "@/types/company";
+import { SHORT_MONTHS } from "@/lib/utils";
 
 interface SimulationChartProps {
   data: MonthlyResult[];
+  cohortAvgMonthlyScore?: number[];
 }
 
-export function SimulationChart({ data }: SimulationChartProps) {
-  const chartData = data.map((d) => ({
-    name: `M${d.month}`,
+export function SimulationChart({ data, cohortAvgMonthlyScore }: SimulationChartProps) {
+  const chartData = data.map((d, i) => ({
+    name: SHORT_MONTHS[d.month - 1],
     month: d.month,
     organic: Number(d.organicScore.toFixed(1)),
     boost: Number(d.boostScore.toFixed(1)),
     ads: Number(d.adsScore.toFixed(1)),
     total: Number(d.totalScore.toFixed(1)),
+    cohortAvg:
+      cohortAvgMonthlyScore && cohortAvgMonthlyScore[i] != null
+        ? Number(cohortAvgMonthlyScore[i].toFixed(1))
+        : undefined,
   }));
 
   return (
@@ -106,6 +112,18 @@ export function SimulationChart({ data }: SimulationChartProps) {
                 dot={{ fill: "hsl(var(--chart-total))", strokeWidth: 0, r: 4 }}
                 activeDot={{ r: 6 }}
               />
+              {cohortAvgMonthlyScore && cohortAvgMonthlyScore.length === 12 && (
+                <Line
+                  type="monotone"
+                  dataKey="cohortAvg"
+                  name="Cohort Avg"
+                  stroke="hsl(var(--chart-cohort))"
+                  strokeWidth={2}
+                  strokeDasharray="4 4"
+                  dot={{ fill: "hsl(var(--chart-cohort))", strokeWidth: 0, r: 3 }}
+                  connectNulls
+                />
+              )}
             </ComposedChart>
           </ResponsiveContainer>
         </div>

@@ -43,6 +43,12 @@ All colors MUST be HSL.
     --chart-boost: 38 92% 50%;
     --chart-ads: 160 84% 39%;
     --chart-total: 262 52% 56%;
+    --chart-cohort: 195 80% 42%;
+
+    /* Cohort metric card accents */
+    --cohort-percentile: 262 52% 56%;
+    --cohort-company: 221 83% 53%;
+    --cohort-avg: 195 80% 42%;
 
     /* Sidebar */
     --sidebar-background: 0 0% 100%;
@@ -89,6 +95,12 @@ All colors MUST be HSL.
     --chart-boost: 38 92% 50%;
     --chart-ads: 160 84% 39%;
     --chart-total: 262 52% 56%;
+    --chart-cohort: 195 80% 42%;
+
+    /* Cohort metric card accents */
+    --cohort-percentile: 262 52% 56%;
+    --cohort-company: 221 83% 53%;
+    --cohort-avg: 195 80% 42%;
 
     /* Sidebar */
     --sidebar-background: 222 47% 9%;

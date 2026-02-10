@@ -1,27 +1,40 @@
 import type { CompanyData, SimulationConfig, MonthlyResult, SimulationResult } from "@/types/company";
 
+/** Seeded PRNG (mulberry32) for deterministic benchmark generation. */
+export function createSeededRng(seed: string): () => number {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) {
+    h = (Math.imul(31, h) + seed.charCodeAt(i)) >>> 0;
+  }
+  return function next() {
+    h = (Math.imul(1664525, h) + 1013904223) >>> 0;
+    return h / 0x1_0000_0000;
+  };
+}
+
 // Distribute total ads quantity randomly across 6 months (7-12)
-function distributeAdsRandomly(totalAdsQty: number): number[] {
-  const weights = Array.from({ length: 6 }, () => Math.random());
+function distributeAdsRandomly(totalAdsQty: number, rng: () => number): number[] {
+  const weights = Array.from({ length: 6 }, () => rng());
   const totalWeight = weights.reduce((sum, w) => sum + w, 0);
   return weights.map(w => Math.floor((w / totalWeight) * totalAdsQty));
 }
 
 export function runSimulation(
   company: CompanyData,
-  config: SimulationConfig
+  config: SimulationConfig,
+  rng: () => number = Math.random
 ): SimulationResult {
   const { boostMultiplier, totalAdsQty, adsCeiling, k } = config;
   const monthlyResults: MonthlyResult[] = [];
 
   // Pre-compute ads distribution for months 7-12
-  const adsDistribution = distributeAdsRandomly(totalAdsQty);
+  const adsDistribution = distributeAdsRandomly(totalAdsQty, rng);
 
   let prevOrganicImpressions = company.monthly_impressions;
 
   for (let month = 1; month <= 12; month++) {
     // Apply randomization (0.9 to 1.1) to avoid systematic drift in organic score
-    const randomFactor = 0.9 + Math.random() * 0.2;
+    const randomFactor = 0.9 + rng() * 0.2;
     // const organicImpressions = month === 1 
     //   ? company.monthly_impressions * randomFactor
     //   : prevOrganicImpressions * randomFactor;

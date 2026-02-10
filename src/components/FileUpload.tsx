@@ -2,10 +2,16 @@ import { useCallback } from "react";
 import * as XLSX from "xlsx";
 import { Upload, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { CompanyData } from "@/types/company";
+import { normalizeCompanyRow, type CompanyData } from "@/types/company";
+
+export interface FileUploadResult {
+  companies: CompanyData[];
+  rawRows: Record<string, unknown>[];
+  skippedRows: number;
+}
 
 interface FileUploadProps {
-  onDataLoaded: (data: CompanyData[]) => void;
+  onDataLoaded: (result: FileUploadResult) => void;
   hasData: boolean;
 }
 
@@ -22,18 +28,17 @@ export function FileUpload({ onDataLoaded, hasData }: FileUploadProps) {
           const workbook = XLSX.read(data, { type: "binary" });
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
-          const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet);
+          const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet);
 
-          const companies: CompanyData[] = jsonData.map((row) => ({
-            companyId: String(row.companyId || row.company_id || ""),
-            companyName: String(row.companyName || row.company_name || ""),
-            monthly_impressions: Number(row.monthly_impressions) || 0,
-            p90: Number(row.p90) || 0,
-            p99: Number(row.p99) || 0,
-            p100: Number(row.p100) || 0,
-          }));
+          const companies: CompanyData[] = [];
+          let skippedRows = 0;
+          for (const row of rawRows) {
+            const parsed = normalizeCompanyRow(row);
+            if ("skip" in parsed) skippedRows++;
+            else companies.push(parsed.company);
+          }
 
-          onDataLoaded(companies);
+          onDataLoaded({ companies, rawRows, skippedRows });
         } catch (error) {
           console.error("Error parsing file:", error);
         }
@@ -56,7 +61,7 @@ export function FileUpload({ onDataLoaded, hasData }: FileUploadProps) {
             {hasData ? "File loaded successfully" : "Upload Excel or CSV file"}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Required columns: companyId, companyName, monthly_impressions, p90, p99, p100
+            Required: companyId, impressions (monthly_impressions or avg_monthly_impressions), p100. Optional: cohort_id, pi, iec_range, piName
           </p>
         </div>
         <Button variant="outline" className="relative" asChild>

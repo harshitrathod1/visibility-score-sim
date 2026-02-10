@@ -28,12 +28,6 @@ export function CompanyList({
     );
   }, [companies, searchQuery]);
 
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num.toFixed(0);
-  };
-
   return (
     <div className="flex flex-col h-full">
       <div className="relative mb-3">
@@ -88,18 +82,6 @@ export function CompanyList({
                     >
                       ID: {company.companyId}
                     </p>
-                    <div
-                      className={cn(
-                        "flex gap-2 mt-1 text-xs",
-                        selectedCompany?.companyId === company.companyId
-                          ? "text-primary-foreground/70"
-                          : "text-muted-foreground"
-                      )}
-                    >
-                      <span>Impressions: {formatNumber(company.monthly_impressions)}</span>
-                      <span>•</span>
-                      <span>p100: {formatNumber(company.p100)}</span>
-                    </div>
                   </div>
                 </div>
               </button>
