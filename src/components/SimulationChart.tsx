@@ -10,9 +10,17 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3 } from "lucide-react";
+import {
+  Tooltip as UITooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import { BarChart3, Info } from "lucide-react";
 import type { MonthlyResult } from "@/types/company";
 import { SHORT_MONTHS } from "@/lib/utils";
+
+const COHORT_AVG_INFO =
+  "Cohort Avg is the average organic visibility score across all companies in the same cohort. It uses organic score only (no boost or ads).";
 
 interface SimulationChartProps {
   data: MonthlyResult[];
@@ -127,6 +135,25 @@ export function SimulationChart({ data, cohortAvgMonthlyScore }: SimulationChart
             </ComposedChart>
           </ResponsiveContainer>
         </div>
+        {cohortAvgMonthlyScore && cohortAvgMonthlyScore.length === 12 && (
+          <div className="flex items-center gap-1.5 mt-2 text-sm text-muted-foreground">
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 rounded-full p-0.5 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  aria-label="How Cohort Avg is computed"
+                >
+                  <Info className="w-3.5 h-3.5" />
+                  <span>Cohort Avg</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <p>{COHORT_AVG_INFO}</p>
+              </TooltipContent>
+            </UITooltip>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
