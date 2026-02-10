@@ -6,78 +6,6 @@ import {
 } from "@/components/ui/tooltip";
 import { Users, Info } from "lucide-react";
 
-function PercentileGauge({ value }: { value: number }) {
-  const radius = 60;
-  const strokeWidth = 12;
-  const cx = 70;
-  const cy = 70;
-  // Half circle from 180° to 0° (left to right)
-  const startAngle = Math.PI;
-  const endAngle = 0;
-  const sweep = startAngle - endAngle;
-  const progress = value / 100;
-  const currentAngle = startAngle - sweep * progress;
-
-  const x1 = cx + radius * Math.cos(startAngle);
-  const y1 = cy - radius * Math.sin(startAngle);
-  const x2 = cx + radius * Math.cos(endAngle);
-  const y2 = cy - radius * Math.sin(endAngle);
-
-  const xP = cx + radius * Math.cos(currentAngle);
-  const yP = cy - radius * Math.sin(currentAngle);
-  const largeArc = progress > 0.5 ? 1 : 0;
-
-  const bgPath = `M ${x1} ${y1} A ${radius} ${radius} 0 1 1 ${x2} ${y2}`;
-  const fgPath = `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${xP} ${yP}`;
-
-  // Color based on percentile
-  const color =
-    value >= 75
-      ? "hsl(var(--chart-ads))"
-      : value >= 50
-        ? "hsl(var(--chart-boost))"
-        : value >= 25
-          ? "hsl(var(--chart-total))"
-          : "hsl(var(--destructive))";
-
-  return (
-    <svg viewBox="0 0 140 80" className="w-full max-w-[160px] mx-auto">
-      <path
-        d={bgPath}
-        fill="none"
-        stroke="hsl(var(--muted))"
-        strokeWidth={strokeWidth}
-        strokeLinecap="round"
-      />
-      <path
-        d={fgPath}
-        fill="none"
-        stroke={color}
-        strokeWidth={strokeWidth}
-        strokeLinecap="round"
-      />
-      <text
-        x={cx}
-        y={cy - 8}
-        textAnchor="middle"
-        className="fill-foreground text-lg font-bold"
-        style={{ fontSize: "18px" }}
-      >
-        {getPercentileDisplay(value)}
-      </text>
-      <text
-        x={cx}
-        y={cy + 8}
-        textAnchor="middle"
-        className="fill-muted-foreground"
-        style={{ fontSize: "10px" }}
-      >
-        {Math.round(value)}th percentile
-      </text>
-    </svg>
-  );
-}
-
 function getPercentileDisplay(rank: number): string {
   if (rank >= 99) return "Top 1%";
   if (rank >= 95) return "Top 5%";
@@ -196,7 +124,9 @@ export function CohortMetricsCard({
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <PercentileGauge value={percentileRankM12} />
+              <p className="text-2xl font-bold text-foreground">
+                {getPercentileDisplay(percentileRankM12)}
+              </p>
             </CardContent>
           </Card>
         )}
