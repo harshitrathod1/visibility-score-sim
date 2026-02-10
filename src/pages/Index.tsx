@@ -1,11 +1,9 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import * as XLSX from "xlsx";
-import { FileUpload } from "@/components/FileUpload";
 import { CompanyList } from "@/components/CompanyList";
 import { SimulationChart } from "@/components/SimulationChart";
 import { ScoreCards } from "@/components/ScoreCards";
 import { CohortMetricsCard } from "@/components/CohortMetricsCard";
-import { MonthlyAveragesCard } from "@/components/MonthlyAveragesCard";
 import { TrendTable } from "@/components/TrendTable";
 import { AdvancedSettings } from "@/components/AdvancedSettings";
 import { runSimulation } from "@/lib/simulation";
@@ -21,7 +19,6 @@ import {
 } from "@/types/company";
 import { Activity, TrendingUp } from "lucide-react";
 
-const DEFAULT_CSV_PATH = "/default-companies.csv";
 const DEFAULT_V2_CSV_PATH = "/company_impressions_data_v2.csv";
 const DEFAULT_BENCHMARK_PATH = "/benchmarks_v2.json";
 
@@ -67,9 +64,8 @@ const Index = () => {
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [benchmark, setBenchmark] = useState<BenchmarkFile | null>(null);
   const [benchmarkLoading, setBenchmarkLoading] = useState(false);
-  const [benchmarkStale, setBenchmarkStale] = useState(false);
   const [benchmarkError, setBenchmarkError] = useState<string | null>(null);
-  const [uploadWarning, setUploadWarning] = useState<string | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
   const workerRef = useRef<Worker | null>(null);
 
   const getDefaultConfig = useCallback((company: CompanyData): SimulationConfig => {
@@ -80,59 +76,6 @@ const Index = () => {
       k: company.p100,
     };
   }, []);
-
-  const handleDataLoaded = useCallback(
-    (result: { companies: CompanyData[]; rawRows: Record<string, unknown>[]; skippedRows: number }) => {
-      setCompanies(result.companies);
-      setRawRows(result.rawRows);
-      setSelectedCompany(null);
-      setResult(null);
-      setBenchmark(null);
-      setBenchmarkError(null);
-      setBenchmarkStale(false);
-      setUploadWarning(
-        result.skippedRows > 0
-          ? `${result.skippedRows} rows skipped (missing companyId or invalid impressions/p100).`
-          : null
-      );
-      if (result.rawRows.length > 0) {
-        setBenchmarkLoading(true);
-        const worker = new Worker(
-          new URL("@/workers/benchmarkWorker.ts", import.meta.url),
-          { type: "module" }
-        );
-        workerRef.current = worker;
-        worker.onmessage = (e: MessageEvent<WorkerMessage>) => {
-          const msg = e.data;
-          if (msg.type === "progress") return;
-          if (msg.type === "done") {
-            const b = msg.benchmark;
-            setCompanies((prev) => prev.filter((c) => b.companies[c.companyId] != null));
-            setRawRows((prev) =>
-              prev.filter((r) => b.companies[companyIdFromRow(r)] != null)
-            );
-            setBenchmark(b);
-            setBenchmarkLoading(false);
-            setBenchmarkError(null);
-          } else {
-            setBenchmarkError(msg.message);
-            setBenchmarkLoading(false);
-          }
-          worker.terminate();
-          workerRef.current = null;
-        };
-        worker.onerror = () => {
-          setBenchmarkError("Benchmark worker failed");
-          setBenchmarkLoading(false);
-          workerRef.current = null;
-        };
-        worker.postMessage({ config, rows: result.rawRows });
-      } else {
-        setBenchmarkLoading(false);
-      }
-    },
-    [config]
-  );
 
   const handleSelectCompany = useCallback(
     (company: CompanyData) => {
@@ -158,53 +101,12 @@ const Index = () => {
     }
   }, [selectedCompany, getDefaultConfig]);
 
-  const handleRegenerateCohort = useCallback(() => {
-    if (rawRows.length === 0) return;
-    setBenchmarkLoading(true);
-    const worker = new Worker(
-      new URL("@/workers/benchmarkWorker.ts", import.meta.url),
-      { type: "module" }
-    );
-    workerRef.current = worker;
-    worker.onmessage = (e: MessageEvent<WorkerMessage>) => {
-      const msg = e.data;
-      if (msg.type === "progress") return;
-      if (msg.type === "done") {
-        setBenchmark(msg.benchmark);
-        setBenchmarkLoading(false);
-        setBenchmarkStale(false);
-        setBenchmarkError(null);
-      } else {
-        setBenchmarkError(msg.message);
-        setBenchmarkLoading(false);
-      }
-      worker.terminate();
-      workerRef.current = null;
-    };
-    worker.onerror = () => {
-      setBenchmarkError("Benchmark worker failed");
-      setBenchmarkLoading(false);
-      workerRef.current = null;
-    };
-    worker.postMessage({ config, rows: rawRows });
-  }, [config, rawRows]);
-
   // Auto-recalculate when config changes
   useEffect(() => {
     if (selectedCompany) {
       setResult(runSimulation(selectedCompany, config));
     }
   }, [config, selectedCompany]);
-
-  const configChangedRef = useRef(false);
-  // Mark benchmark stale when controls change (so user knows to regenerate); skip initial mount
-  useEffect(() => {
-    if (!configChangedRef.current) {
-      configChangedRef.current = true;
-      return;
-    }
-    if (benchmark && !benchmarkLoading) setBenchmarkStale(true);
-  }, [config, benchmark, benchmarkLoading]);
 
   // Cleanup worker on unmount
   useEffect(() => {
@@ -216,75 +118,104 @@ const Index = () => {
     };
   }, []);
 
-  // All benchmark companies, sorted by cohort avg score descending (highest cohort avg first)
-  const displayCompanies = useMemo(() => {
-    if (!benchmark || companies.length === 0) return [];
-    const list = companies
-      .filter((c) => benchmark.companies[c.companyId] != null)
-      .map((c) => {
-        const b = benchmark.companies[c.companyId];
-        const cohort = b.cohortId ? benchmark.cohorts[b.cohortId] : undefined;
-        const cohortAvgScore = cohort?.cohortAvgScore1to12 ?? 0;
-        return { company: c, cohortAvgScore };
-      })
-      .sort((a, b) => b.cohortAvgScore - a.cohortAvgScore)
-      .map(({ company }) => company);
-    if (selectedCompany && !list.some((c) => c.companyId === selectedCompany.companyId)) {
-      return [selectedCompany, ...list];
-    }
-    return list;
-  }, [benchmark, companies, selectedCompany]);
+  const sortByCompanyIdAsc = useCallback((a: CompanyData, b: CompanyData) => {
+    const na = Number(a.companyId);
+    const nb = Number(b.companyId);
+    if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb;
+    return String(a.companyId).localeCompare(String(b.companyId));
+  }, []);
 
-  // Load default v2 CSV and benchmarks on first visit; fallback to v1 default if v2 CSV missing
+  const displayCompanies = useMemo(() => {
+    if (companies.length === 0) return [];
+    const list = !benchmark
+      ? [...companies]
+      : companies.filter((c) => benchmark.companies[c.companyId] != null);
+    const sorted = [...list].sort(sortByCompanyIdAsc);
+    if (selectedCompany && !sorted.some((c) => c.companyId === selectedCompany.companyId)) {
+      return [selectedCompany, ...sorted].sort(sortByCompanyIdAsc);
+    }
+    return sorted;
+  }, [benchmark, companies, selectedCompany, sortByCompanyIdAsc]);
+
+  // Load default v2 CSV; use precomputed benchmarks if present, otherwise compute.
   useEffect(() => {
     let cancelled = false;
+    const defaultConfig: SimulationConfig = {
+      boostMultiplier: 2.0,
+      totalAdsQty: 600000,
+      adsCeiling: 1200000,
+      k: 10000,
+    };
+    const runBenchmarkWorker = (rows: Record<string, unknown>[]) => {
+      if (cancelled || rows.length === 0) {
+        setInitialLoading(false);
+        return;
+      }
+      setBenchmarkLoading(true);
+      const worker = new Worker(
+        new URL("@/workers/benchmarkWorker.ts", import.meta.url),
+        { type: "module" }
+      );
+      worker.onmessage = (e: MessageEvent<WorkerMessage>) => {
+        const msg = e.data;
+        if (msg.type === "progress") return;
+        if (msg.type === "done") {
+          const b = msg.benchmark;
+          setCompanies((prev) => prev.filter((c) => b.companies[c.companyId] != null));
+          setRawRows((prev) => prev.filter((r) => b.companies[companyIdFromRow(r)] != null));
+          setBenchmark(b);
+          setBenchmarkError(null);
+        } else {
+          setBenchmarkError(msg.message ?? "Benchmark failed");
+        }
+        setBenchmarkLoading(false);
+        setInitialLoading(false);
+        worker.terminate();
+      };
+      worker.onerror = () => {
+        if (!cancelled) {
+          setBenchmarkError("Benchmark worker failed");
+          setBenchmarkLoading(false);
+          setInitialLoading(false);
+        }
+        worker.terminate();
+      };
+      worker.postMessage({ config: defaultConfig, rows });
+    };
+
     fetch(DEFAULT_V2_CSV_PATH)
       .then((res) => (res.ok ? res.text() : Promise.reject(new Error("not found"))))
       .then((csvText) => {
         if (cancelled) return null;
         const { companies: parsed, rawRows: rows } = parseCsvToCompaniesAndRows(csvText);
-        if (parsed.length > 0) {
-          return fetch(DEFAULT_BENCHMARK_PATH)
-            .then((r) => (r.ok ? r.json() : Promise.reject(new Error("benchmark not found"))))
-            .then((data: BenchmarkFile) => {
-              if (cancelled) return;
-              if (data.version === "v2" && data.companies && data.cohorts) {
-                const inBenchmark = (c: CompanyData) => data.companies[c.companyId] != null;
-                setCompanies(parsed.filter(inBenchmark));
-                setRawRows(rows.filter((r) => data.companies[companyIdFromRow(r)] != null));
-                setBenchmark(data);
-                setBenchmarkError(null);
-                setBenchmarkStale(false);
-              } else {
-                setCompanies(parsed);
-                setRawRows(rows);
-                setBenchmarkError("Cohort benchmarks unavailable for default dataset.");
-              }
-            })
-            .catch(() => {
-              if (!cancelled) {
-                setCompanies(parsed);
-                setRawRows(rows);
-                setBenchmarkError("Cohort benchmarks unavailable for default dataset.");
-              }
-            });
+        if (parsed.length === 0) {
+          setInitialLoading(false);
+          return null;
         }
-        return null;
+        setCompanies(parsed);
+        setRawRows(rows);
+        return fetch(DEFAULT_BENCHMARK_PATH)
+          .then((r) => (r.ok ? r.json() : Promise.reject(new Error("not found"))))
+          .then((data: BenchmarkFile) => {
+            if (cancelled) return;
+            if (data.version === "v2" && data.companies && data.cohorts) {
+              const inBenchmark = (c: CompanyData) => data.companies[c.companyId] != null;
+              setCompanies(parsed.filter(inBenchmark));
+              setRawRows(rows.filter((r) => data.companies[companyIdFromRow(r)] != null));
+              setBenchmark(data);
+              setBenchmarkError(null);
+            }
+            setInitialLoading(false);
+          })
+          .catch(() => {
+            if (!cancelled) runBenchmarkWorker(rows);
+          });
       })
       .catch(() => {
-        if (cancelled) return;
-        fetch(DEFAULT_CSV_PATH)
-          .then((r) => (r.ok ? r.text() : Promise.reject(new Error("Default data not found"))))
-          .then((csvText) => {
-            if (cancelled) return;
-            const { companies: parsed, rawRows: rows } = parseCsvToCompaniesAndRows(csvText);
-            if (parsed.length > 0) {
-              setCompanies(parsed);
-              setRawRows(rows);
-            }
-          })
-          .catch(() => {});
-        setBenchmarkError("Cohort benchmarks unavailable for default dataset.");
+        if (!cancelled) {
+          setBenchmarkError("Failed to load default data.");
+          setInitialLoading(false);
+        }
       });
     return () => {
       cancelled = true;
@@ -306,59 +237,41 @@ const Index = () => {
             </div>
           </div>
           {companies.length > 0 && (
-            <div className="flex flex-col items-end gap-1">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <TrendingUp className="w-4 h-4" />
-                {benchmark
-                  ? `${displayCompanies.length} companies`
-                  : `${companies.length} companies loaded`}
-              </div>
-              {uploadWarning && (
-                <p className="text-xs text-amber-600 dark:text-amber-500">{uploadWarning}</p>
-              )}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <TrendingUp className="w-4 h-4" />
+              {displayCompanies.length} companies
             </div>
           )}
         </div>
       </header>
 
       <main className="container px-4 py-6">
-        {companies.length === 0 ? (
-          /* Upload State */
-          <div className="max-w-2xl mx-auto pt-12">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold mb-2">Get Started</h2>
-              <p className="text-muted-foreground">
-                Upload your company data to simulate visibility scores
-              </p>
-            </div>
-            <FileUpload onDataLoaded={handleDataLoaded} hasData={false} />
+        {initialLoading || (companies.length === 0 && !benchmarkError) ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center text-muted-foreground">
+            <Activity className="w-10 h-10 animate-pulse mb-4" />
+            <p>Loading…</p>
+          </div>
+        ) : companies.length === 0 ? (
+          <div className="max-w-2xl mx-auto pt-12 text-center">
+            <p className="text-destructive">{benchmarkError ?? "Failed to load data."}</p>
           </div>
         ) : (
-          /* Main Dashboard */
           <div className="grid grid-cols-12 gap-6">
-            {/* Left Sidebar - Company List */}
             <aside className="col-span-12 lg:col-span-3">
               <div className="sticky top-24 space-y-4">
-                <FileUpload onDataLoaded={handleDataLoaded} hasData={true} />
                 <div className="bg-card border border-border rounded-lg p-4 h-[500px]">
-                  {benchmark ? (
+                  {benchmarkLoading ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground text-sm px-4">
+                      <Activity className="w-8 h-8 animate-pulse mb-2" />
+                      <p>Calculating benchmarks…</p>
+                      <p className="mt-1">{companies.length} companies</p>
+                    </div>
+                  ) : (
                     <CompanyList
                       companies={displayCompanies}
                       selectedCompany={selectedCompany}
                       onSelectCompany={handleSelectCompany}
                     />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground text-sm px-4">
-                      {benchmarkLoading ? (
-                        <>
-                          <Activity className="w-8 h-8 animate-pulse mb-2" />
-                          <p>Calculating benchmarks…</p>
-                          <p className="mt-1">{companies.length} companies loaded. List will show all when ready.</p>
-                        </>
-                      ) : (
-                        <p>Load data to see companies (all shown once benchmarks are ready).</p>
-                      )}
-                    </div>
                   )}
                 </div>
               </div>
@@ -411,9 +324,6 @@ const Index = () => {
                      />
                    )}
 
-                   {/* Monthly Averages */}
-                   {result && <MonthlyAveragesCard monthlyResults={result.monthlyResults} />}
-
                    {/* Chart */}
                    {result && (
                      <SimulationChart
@@ -429,17 +339,8 @@ const Index = () => {
                    {/* Trend Table */}
                    {result && <TrendTable monthlyResults={result.monthlyResults} />}
 
-                   {/* Advanced Settings (includes p90, p99, p100 view) */}
-                   <AdvancedSettings
-                     config={config}
-                     onConfigChange={setConfig}
-                     onReset={handleReset}
-                     onRecalculate={handleRecalculate}
-                     onRegenerateCohort={handleRegenerateCohort}
-                     benchmarkLoading={benchmarkLoading}
-                     benchmarkStale={benchmarkStale}
-                     selectedCompany={selectedCompany}
-                   />
+                   {/* Advanced Details */}
+                   <AdvancedSettings selectedCompany={selectedCompany} />
                 </>
               )}
             </div>

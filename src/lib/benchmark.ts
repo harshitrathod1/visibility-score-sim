@@ -123,11 +123,9 @@ export function generateBenchmarks(
     }
   }
 
-  // Cohort averages use organic score only (not total = organic + boost + ads).
+  // Cohort averages: cohortAvgMonthlyScore uses organic only; cohortAvgScore1to12 uses total (organic + boost + ads).
   // Formula: for each month i, cohortAvgMonthlyScore[i] = (1/m) * sum over companies of organicScore[i].
-  // cohortAvgScore1to12 = (1/m) * sum over companies of (mean of their 12 organic scores).
-  // Note: cohort avg (organic) is typically much lower than cohort avg (total) would be, because
-  // total includes boost+ads and many companies have low organic but non-zero boost/ads.
+  // cohortAvgScore1to12 = (1/m) * sum over companies of (mean of their 12 total scores). Used in metrics card.
   const cohorts: Record<string, CohortBenchmark> = {};
   for (const [cid, data] of Object.entries(cohortScores)) {
     if (cid.startsWith("_no_cohort_")) continue;
@@ -140,7 +138,7 @@ export function generateBenchmarks(
             return sum / m;
           });
     const cohortAvgScore1to12 =
-      m === 0 ? 0 : data.avgOrganic1to12.reduce((a, b) => a + b, 0) / m;
+      m === 0 ? 0 : data.avg1to12.reduce((a, b) => a + b, 0) / m;
 
     // Validation: (1) formula correctness, (2) organic avg <= total avg (sanity)
     if (m > 0 && process.env.NODE_ENV !== "production") {
@@ -148,7 +146,7 @@ export function generateBenchmarks(
         const sum = data.monthlyOrganicSeries.reduce((s, arr) => s + arr[i], 0);
         return sum / m;
       });
-      const recomputed1to12 = data.avgOrganic1to12.reduce((a, b) => a + b, 0) / m;
+      const recomputed1to12 = data.avg1to12.reduce((a, b) => a + b, 0) / m;
       const monthlyMatch = recomputedMonthly.every((v, i) => Math.abs(v - cohortAvgMonthlyScore[i]) < 1e-10);
       const avgMatch = Math.abs(recomputed1to12 - cohortAvgScore1to12) < 1e-10;
       if (!monthlyMatch || !avgMatch) {

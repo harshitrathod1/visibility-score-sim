@@ -5,14 +5,22 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { BarChart3, Info } from "lucide-react";
 import type { MonthlyResult } from "@/types/company";
 import { SHORT_MONTHS } from "@/lib/utils";
+
+const COHORT_AVG_INFO =
+  "The average organic visibility score of your cohort for each month (no boost or ads).";
 
 interface SimulationChartProps {
   data: MonthlyResult[];
@@ -65,7 +73,7 @@ export function SimulationChart({ data, cohortAvgMonthlyScore }: SimulationChart
                 tickLine={false}
                 axisLine={{ className: "stroke-border" }}
               />
-              <Tooltip
+              <RechartsTooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
                   borderColor: "hsl(var(--border))",
@@ -78,6 +86,39 @@ export function SimulationChart({ data, cohortAvgMonthlyScore }: SimulationChart
                 wrapperStyle={{
                   paddingTop: "20px",
                 }}
+                content={({ payload }) => (
+                  <ul className="flex flex-wrap items-center justify-center gap-4 pt-2">
+                    {payload?.map((entry) => (
+                      <li
+                        key={entry.value}
+                        className="flex items-center gap-1.5"
+                        style={{ color: entry.color }}
+                      >
+                        <span
+                          className="inline-block w-4 h-0.5 rounded shrink-0"
+                          style={{ backgroundColor: entry.color }}
+                        />
+                        <span className="text-muted-foreground">{entry.value}</span>
+                        {entry.value === "Cohort Avg" && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="inline-flex text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                                aria-label="How cohort avg is calculated"
+                              >
+                                <Info className="w-3.5 h-3.5" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-[280px]">
+                              {COHORT_AVG_INFO}
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               />
               <Bar
                 dataKey="organic"

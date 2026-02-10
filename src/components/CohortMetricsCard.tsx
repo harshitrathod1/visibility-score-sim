@@ -19,16 +19,16 @@ function getPercentileDisplay(rank: number): string {
 }
 
 const COHORT_SECTION_TOOLTIP =
-  "A cohort is the group of companies that share the same cohort_id (from your data file, or derived from iec_range and pi when missing). We run the same simulation for every company, then group results by cohort_id to compute averages and percentile rank (by Month 12 score within each cohort).";
+  "A cohort is a group of similar companies (same cohort_id). We compare companies within each cohort to calculate averages and ranks.";
 
 const PERCENTILE_TOOLTIP =
-  "Your position within similar companies. Based on your Latest visibility score, this shows how you rank among companies in the same cohort. Top 10% means you performed better than 90% of peers.";
+  "Shows how you rank among similar companies in your cohort. Top 10% means you did better than 90% of peers.";
 
 const COMPANY_AVG_TOOLTIP =
-  "Your average visibility over the year. Calculated as the mean of your monthly visibility scores from January to December.";
+  "Your average visibility score across the year (Jan–Dec).";
 
 const COHORT_AVG_TOOLTIP =
-  "Typical performance of your cohort. This is the average yearly organic visibility score across all companies in your cohort, used as a benchmark.";
+  "The average yearly visibility score of all companies in your cohort. Used as a benchmark.";
 
 interface CohortMetricsCardProps {
   percentileRankM12: number | undefined;

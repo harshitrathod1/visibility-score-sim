@@ -1,4 +1,4 @@
-import { RotateCcw, Calculator, RefreshCw } from "lucide-react";
+import { RotateCcw, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,9 +18,6 @@ interface ControlPanelProps {
   onConfigChange: (config: SimulationConfig) => void;
   onReset: () => void;
   onRecalculate: () => void;
-  onRegenerateCohort?: () => void;
-  benchmarkLoading?: boolean;
-  benchmarkStale?: boolean;
 }
 
 const BOOST_OPTIONS = [
@@ -35,9 +32,6 @@ export function ControlPanel({
   onConfigChange,
   onReset,
   onRecalculate,
-  onRegenerateCohort,
-  benchmarkLoading = false,
-  benchmarkStale = false,
 }: ControlPanelProps) {
   const isPresetBoost = ["1.2", "2.0", "3.0"].includes(String(config.boostMultiplier));
 
@@ -172,36 +166,6 @@ export function ControlPanel({
             className="bg-background"
           />
         </div>
-
-        {/* Cohort metrics status */}
-        {onRegenerateCohort != null && (
-          <div className="space-y-2 pt-2 border-t border-border">
-            <p className="text-xs text-muted-foreground">
-              {benchmarkStale
-                ? "Outdated - regenerate"
-                : "Cohort metrics reflect current controls"}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onRegenerateCohort}
-              disabled={benchmarkLoading}
-              className="w-full"
-            >
-              {benchmarkLoading ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Generating…
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Regenerate Cohort Metrics
-                </>
-              )}
-            </Button>
-          </div>
-        )}
 
         {/* Action Buttons */}
         <div className="flex gap-3 pt-2">
