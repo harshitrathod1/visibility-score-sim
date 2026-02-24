@@ -153,6 +153,7 @@ export function CohortMetricsCard({
               <p className="text-2xl font-bold text-foreground">
                 {companyAvgScore1to12.toFixed(1)}
               </p>
+              <p className="text-xs text-muted-foreground mt-1">Avg across Months 1–12</p>
             </CardContent>
           </Card>
         )}
@@ -179,6 +180,7 @@ export function CohortMetricsCard({
               <p className="text-2xl font-bold text-foreground">
                 {cohortAvgScore1to12.toFixed(1)}
               </p>
+              <p className="text-xs text-muted-foreground mt-1">Avg across Months 1–12</p>
             </CardContent>
           </Card>
         )}
