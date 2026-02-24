@@ -25,10 +25,10 @@ const PERCENTILE_TOOLTIP =
   "Shows how you rank among similar companies in your cohort. Top 10% means you did better than 90% of peers.";
 
 const COMPANY_AVG_TOOLTIP =
-  "Your average visibility score across the year (Jan–Dec).";
+  "Your average visibility score across the year";
 
 const COHORT_AVG_TOOLTIP =
-  "The average yearly visibility score of all companies in your cohort. Used as a benchmark.";
+  "The average yearly visibility score of all companies in your cohort";
 
 interface CohortMetricsCardProps {
   percentileRankM12: number | undefined;
@@ -150,10 +150,10 @@ export function CohortMetricsCard({
                   </TooltipContent>
                 </Tooltip>
               </div>
+              <p className="text-xs text-muted-foreground mb-1">Avg across last 12 months</p>
               <p className="text-2xl font-bold text-foreground">
                 {companyAvgScore1to12.toFixed(1)}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">Avg across Months 1–12</p>
             </CardContent>
           </Card>
         )}
@@ -177,10 +177,10 @@ export function CohortMetricsCard({
                   </TooltipContent>
                 </Tooltip>
               </div>
+              <p className="text-xs text-muted-foreground mb-1">Avg across last 12 months</p>
               <p className="text-2xl font-bold text-foreground">
                 {cohortAvgScore1to12.toFixed(1)}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">Avg across Months 1–12</p>
             </CardContent>
           </Card>
         )}
