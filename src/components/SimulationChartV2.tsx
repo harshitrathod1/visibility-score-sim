@@ -22,18 +22,16 @@ import { getLast12MonthLabels } from "@/lib/utils";
 const COHORT_AVG_INFO =
   "The average organic visibility score of your cohort for each month (no boost or ads).";
 
-interface SimulationChartProps {
+interface SimulationChartV2Props {
   data: MonthlyResult[];
   cohortAvgMonthlyScore?: number[];
 }
 
-export function SimulationChart({ data, cohortAvgMonthlyScore }: SimulationChartProps) {
+export function SimulationChartV2({ data, cohortAvgMonthlyScore }: SimulationChartV2Props) {
+  const monthLabels = getLast12MonthLabels();
   const chartData = data.map((d, i) => ({
-    name: getLast12MonthLabels()[i],
+    name: monthLabels[i],
     month: d.month,
-    organic: Number(d.organicScore.toFixed(1)),
-    boost: Number(d.boostScore.toFixed(1)),
-    ads: Number(d.adsScore.toFixed(1)),
     total: Number(d.totalScore.toFixed(1)),
     cohortAvg:
       cohortAvgMonthlyScore && cohortAvgMonthlyScore[i] != null
@@ -83,9 +81,7 @@ export function SimulationChart({ data, cohortAvgMonthlyScore }: SimulationChart
                 labelStyle={{ color: "hsl(var(--foreground))" }}
               />
               <Legend
-                wrapperStyle={{
-                  paddingTop: "20px",
-                }}
+                wrapperStyle={{ paddingTop: "20px" }}
                 content={({ payload }) => (
                   <ul className="flex flex-wrap items-center justify-center gap-4 pt-2">
                     {payload?.map((entry) => (
@@ -121,37 +117,11 @@ export function SimulationChart({ data, cohortAvgMonthlyScore }: SimulationChart
                 )}
               />
               <Bar
-                dataKey="organic"
-                name="Organic"
-                stackId="scores"
-                fill="hsl(var(--chart-organic))"
-                radius={[0, 0, 0, 0]}
-                maxBarSize={40}
-              />
-              <Bar
-                dataKey="boost"
-                name="Boost"
-                stackId="scores"
-                fill="hsl(var(--chart-boost))"
-                radius={[0, 0, 0, 0]}
-                maxBarSize={40}
-              />
-              <Bar
-                dataKey="ads"
-                name="Ads"
-                stackId="scores"
-                fill="hsl(var(--chart-ads))"
+                dataKey="total"
+                name="Total Score"
+                fill="hsl(var(--chart-total))"
                 radius={[4, 4, 0, 0]}
                 maxBarSize={40}
-              />
-              <Line
-                type="monotone"
-                dataKey="total"
-                name="Total"
-                stroke="hsl(var(--chart-total))"
-                strokeWidth={3}
-                dot={{ fill: "hsl(var(--chart-total))", strokeWidth: 0, r: 4 }}
-                activeDot={{ r: 6 }}
               />
               {cohortAvgMonthlyScore && cohortAvgMonthlyScore.length === 12 && (
                 <Line

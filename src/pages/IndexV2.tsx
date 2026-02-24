@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { CompanyList } from "@/components/CompanyList";
-import { SimulationChart } from "@/components/SimulationChart";
+import { SimulationChartV2 } from "@/components/SimulationChartV2";
 import { ScoreCards } from "@/components/ScoreCards";
 import { CohortMetricsCard } from "@/components/CohortMetricsCard";
-import { TrendTable } from "@/components/TrendTable";
+import { TrendTableV2 } from "@/components/TrendTableV2";
 import { AdvancedSettings } from "@/components/AdvancedSettings";
 import { runSimulation } from "@/lib/simulation";
 import {
@@ -22,7 +22,6 @@ import { Activity, TrendingUp } from "lucide-react";
 const DEFAULT_V2_CSV_PATH = "/company_impressions_data_v2.csv";
 const DEFAULT_BENCHMARK_PATH = "/benchmarks_v2.json";
 
-/** Company IDs that exist in the benchmark are the only ones we display. */
 function companyIdFromRow(row: Record<string, unknown>): string {
   return String(row.companyId ?? row.company_id ?? "").trim();
 }
@@ -51,7 +50,7 @@ type WorkerMessage =
   | { type: "done"; benchmark: BenchmarkFile }
   | { type: "error"; message: string };
 
-const Index = () => {
+const IndexV2 = () => {
   const [companies, setCompanies] = useState<CompanyData[]>([]);
   const [rawRows, setRawRows] = useState<Record<string, unknown>[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(null);
@@ -101,14 +100,12 @@ const Index = () => {
     }
   }, [selectedCompany, getDefaultConfig]);
 
-  // Auto-recalculate when config changes
   useEffect(() => {
     if (selectedCompany) {
       setResult(runSimulation(selectedCompany, config));
     }
   }, [config, selectedCompany]);
 
-  // Cleanup worker on unmount
   useEffect(() => {
     return () => {
       if (workerRef.current) {
@@ -137,7 +134,6 @@ const Index = () => {
     return sorted;
   }, [benchmark, companies, selectedCompany, sortByCompanyIdAsc]);
 
-  // Load default v2 CSV; use precomputed benchmarks if present, otherwise compute.
   useEffect(() => {
     let cancelled = false;
     const defaultConfig: SimulationConfig = {
@@ -224,7 +220,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/75">
         <div className="container flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
@@ -271,7 +266,6 @@ const Index = () => {
               </div>
             </aside>
 
-            {/* Right Content - Controls & Visualization */}
             <div className="col-span-12 lg:col-span-9 space-y-6">
               {!selectedCompany ? (
                 <div className="flex flex-col items-center justify-center h-[600px] bg-card border border-border rounded-lg">
@@ -287,7 +281,6 @@ const Index = () => {
                 </div>
               ) : (
                 <>
-                  {/* Selected Company Info - Company Name and ID only */}
                   <div className="bg-card border border-border rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div>
@@ -297,44 +290,39 @@ const Index = () => {
                     </div>
                   </div>
 
-                   {/* Score Cards */}
-                   {result && <ScoreCards monthlyResults={result.monthlyResults} />}
+                  {result && <ScoreCards monthlyResults={result.monthlyResults} />}
 
-                   {/* Cohort metrics (percentile, company avg, cohort avg) */}
-                   {result && selectedCompany && (
-                     <CohortMetricsCard
-                       companyAvgScore1to12={
-                         benchmark?.companies[selectedCompany.companyId]?.avgScore1to12
-                       }
-                       cohortAvgScore1to12={
-                         selectedCompany.cohort_id && benchmark?.cohorts[selectedCompany.cohort_id]
-                           ? benchmark.cohorts[selectedCompany.cohort_id].cohortAvgScore1to12
-                           : undefined
-                       }
-                       percentileRankM12={
-                         benchmark?.companies[selectedCompany.companyId]?.percentileRankM12
-                       }
-                       benchmarkUnavailable={benchmarkError != null}
-                     />
-                   )}
+                  {result && selectedCompany && (
+                    <CohortMetricsCard
+                      companyAvgScore1to12={
+                        benchmark?.companies[selectedCompany.companyId]?.avgScore1to12
+                      }
+                      cohortAvgScore1to12={
+                        selectedCompany.cohort_id && benchmark?.cohorts[selectedCompany.cohort_id]
+                          ? benchmark.cohorts[selectedCompany.cohort_id].cohortAvgScore1to12
+                          : undefined
+                      }
+                      percentileRankM12={
+                        benchmark?.companies[selectedCompany.companyId]?.percentileRankM12
+                      }
+                      benchmarkUnavailable={benchmarkError != null}
+                    />
+                  )}
 
-                   {/* Chart */}
-                   {result && (
-                     <SimulationChart
-                       data={result.monthlyResults}
-                       cohortAvgMonthlyScore={
-                         selectedCompany?.cohort_id && benchmark?.cohorts[selectedCompany.cohort_id]
-                           ? benchmark.cohorts[selectedCompany.cohort_id].cohortAvgMonthlyScore
-                           : undefined
-                       }
-                     />
-                   )}
+                  {result && (
+                    <SimulationChartV2
+                      data={result.monthlyResults}
+                      cohortAvgMonthlyScore={
+                        selectedCompany?.cohort_id && benchmark?.cohorts[selectedCompany.cohort_id]
+                          ? benchmark.cohorts[selectedCompany.cohort_id].cohortAvgMonthlyScore
+                          : undefined
+                      }
+                    />
+                  )}
 
-                   {/* Trend Table */}
-                   {result && <TrendTable monthlyResults={result.monthlyResults} />}
+                  {result && <TrendTableV2 monthlyResults={result.monthlyResults} />}
 
-                   {/* Advanced Details */}
-                   <AdvancedSettings selectedCompany={selectedCompany} />
+                  <AdvancedSettings selectedCompany={selectedCompany} />
                 </>
               )}
             </div>
@@ -345,4 +333,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default IndexV2;

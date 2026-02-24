@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import type { MonthlyResult } from "@/types/company";
-import { SHORT_MONTHS } from "@/lib/utils";
+import { getLast12MonthLabels } from "@/lib/utils";
 
 interface TrendTableProps {
   monthlyResults: MonthlyResult[];
@@ -74,7 +74,7 @@ export function TrendTable({ monthlyResults }: TrendTableProps) {
                       key={i}
                       className="text-center text-muted-foreground font-medium min-w-[60px]"
                     >
-                      {SHORT_MONTHS[i] ?? `M${i + 1}`}
+                      {getLast12MonthLabels()[i] ?? `M${i + 1}`}
                     </TableHead>
                   ))}
                 </TableRow>
