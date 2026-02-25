@@ -20,7 +20,7 @@ import type { MonthlyResult } from "@/types/company";
 import { getLast12MonthLabels } from "@/lib/utils";
 
 const COHORT_AVG_INFO =
-  "The average organic visibility score of your cohort for each month (no boost or ads).";
+  "Cohort average visibility score (yearly avg with ±10% variation per month for display).";
 
 interface SimulationChartV2Props {
   data: MonthlyResult[];

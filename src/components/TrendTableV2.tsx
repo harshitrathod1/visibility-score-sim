@@ -7,9 +7,10 @@ import { getLast12MonthLabels } from "@/lib/utils";
 
 interface TrendTableV2Props {
   monthlyResults: MonthlyResult[];
+  cohortAvgMonthlyScore?: number[];
 }
 
-export function TrendTableV2({ monthlyResults }: TrendTableV2Props) {
+export function TrendTableV2({ monthlyResults, cohortAvgMonthlyScore }: TrendTableV2Props) {
   const monthLabels = getLast12MonthLabels();
   const totalScores = monthlyResults.map((r) => r.totalScore);
 
@@ -63,6 +64,21 @@ export function TrendTableV2({ monthlyResults }: TrendTableV2Props) {
                     </TableCell>
                   ))}
                 </TableRow>
+                {cohortAvgMonthlyScore && cohortAvgMonthlyScore.length === 12 && (
+                  <TableRow className="border-border hover:bg-muted/50">
+                    <TableCell className="font-medium text-foreground">
+                      Cohort Avg
+                    </TableCell>
+                    {cohortAvgMonthlyScore.map((value, i) => (
+                      <TableCell
+                        key={i}
+                        className="text-center text-sm font-semibold text-[hsl(var(--cohort-avg))]"
+                      >
+                        {value.toFixed(1)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>

@@ -17,6 +17,7 @@ import {
   type SimulationResult,
   type BenchmarkFile,
 } from "@/types/company";
+import { getCohortAvgMonthlyWithVariation } from "@/lib/utils";
 import { Activity, TrendingUp } from "lucide-react";
 
 const DEFAULT_V2_CSV_PATH = "/company_impressions_data_v2.csv";
@@ -218,6 +219,12 @@ const IndexV2 = () => {
     };
   }, []);
 
+  const cohortAvgMonthlyDisplay = useMemo(() => {
+    if (!selectedCompany?.cohort_id || !benchmark?.cohorts[selectedCompany.cohort_id]) return undefined;
+    const c = benchmark.cohorts[selectedCompany.cohort_id];
+    return getCohortAvgMonthlyWithVariation(c.cohortAvgScore1to12, selectedCompany.cohort_id);
+  }, [benchmark, selectedCompany?.cohort_id]);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/75">
@@ -312,15 +319,16 @@ const IndexV2 = () => {
                   {result && (
                     <SimulationChartV2
                       data={result.monthlyResults}
-                      cohortAvgMonthlyScore={
-                        selectedCompany?.cohort_id && benchmark?.cohorts[selectedCompany.cohort_id]
-                          ? benchmark.cohorts[selectedCompany.cohort_id].cohortAvgMonthlyScore
-                          : undefined
-                      }
+                      cohortAvgMonthlyScore={cohortAvgMonthlyDisplay}
                     />
                   )}
 
-                  {result && <TrendTableV2 monthlyResults={result.monthlyResults} />}
+                  {result && (
+                    <TrendTableV2
+                      monthlyResults={result.monthlyResults}
+                      cohortAvgMonthlyScore={cohortAvgMonthlyDisplay}
+                    />
+                  )}
 
                   <AdvancedSettings selectedCompany={selectedCompany} />
                 </>
